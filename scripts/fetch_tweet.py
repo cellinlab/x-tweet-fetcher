@@ -25,15 +25,20 @@ def parse_tweet_url(url: str) -> tuple:
     raise ValueError(f"Cannot parse tweet URL: {url}")
 
 
-def fetch_tweet(url: str) -> Dict[str, Any]:
-    """Fetch tweet text, stats, quotes, and full article content via FxTwitter API."""
+def fetch_tweet(url: str, timeout: int = 30) -> Dict[str, Any]:
+    """Fetch tweet text, stats, quotes, and full article content via FxTwitter API.
+
+    Args:
+        url: Tweet URL (x.com or twitter.com)
+        timeout: Request timeout in seconds (default: 30)
+    """
     username, tweet_id = parse_tweet_url(url)
     result = {"url": url, "username": username, "tweet_id": tweet_id}
 
     api_url = f"https://api.fxtwitter.com/{username}/status/{tweet_id}"
     try:
         req = urllib.request.Request(api_url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode())
 
         if data.get("code") != 200:
@@ -106,9 +111,10 @@ def main():
     parser.add_argument("--url", "-u", required=True, help="Tweet URL (x.com or twitter.com)")
     parser.add_argument("--pretty", "-p", action="store_true", help="Pretty print JSON")
     parser.add_argument("--text-only", "-t", action="store_true", help="Print only tweet text (or article full text)")
+    parser.add_argument("--timeout", type=int, default=30, help="Request timeout in seconds (default: 30)")
 
     args = parser.parse_args()
-    result = fetch_tweet(args.url)
+    result = fetch_tweet(args.url, timeout=args.timeout)
 
     if args.text_only:
         tweet = result.get("tweet", {})
