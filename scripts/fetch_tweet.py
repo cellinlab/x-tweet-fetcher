@@ -27,11 +27,14 @@ def parse_tweet_url(url: str) -> tuple:
 
 def fetch_tweet(url: str) -> Dict[str, Any]:
     """Fetch tweet text, stats, quotes, and full article content via FxTwitter API."""
-    username, tweet_id = parse_tweet_url(url)
-    result = {"url": url, "username": username, "tweet_id": tweet_id}
+    result = {"url": url}
 
-    api_url = f"https://api.fxtwitter.com/{username}/status/{tweet_id}"
     try:
+        username, tweet_id = parse_tweet_url(url)
+        result["username"] = username
+        result["tweet_id"] = tweet_id
+
+        api_url = f"https://api.fxtwitter.com/{username}/status/{tweet_id}"
         req = urllib.request.Request(api_url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode())
